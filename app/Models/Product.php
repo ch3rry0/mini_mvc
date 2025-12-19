@@ -1,11 +1,13 @@
 <?php
 
-// Ici je définit le namespace ou il y aura ma class
 namespace Mini\Models;
 
 use Mini\Core\Database;
 use PDO;
 
+/**
+ * Model Product - Gère les produits
+ */
 class Product
 {
     private $id;
@@ -13,167 +15,97 @@ class Product
     private $description;
     private $prix;
     private $stock;
-    private $image_url;
     private $categorie_id;
+
+    // Propriétés additionnelles pour les jointures
+    private $categorie_nom;
 
     // =====================
     // Getters / Setters
     // =====================
 
-    public function getId()
-    {
-        return $this->id;
-    }
+    public function getId() { return $this->id; }
+    public function setId($id) { $this->id = $id; }
 
-    public function setId($id)
-    {
-        $this->id = $id;
-    }
+    public function getNom() { return $this->nom; }
+    public function setNom($nom) { $this->nom = $nom; }
 
-    public function getNom()
-    {
-        return $this->nom;
-    }
+    public function getDescription() { return $this->description; }
+    public function setDescription($description) { $this->description = $description; }
 
-    public function setNom($nom)
-    {
-        $this->nom = $nom;
-    }
+    public function getPrix() { return $this->prix; }
+    public function setPrix($prix) { $this->prix = $prix; }
 
-    public function getDescription()
-    {
-        return $this->description;
-    }
+    public function getStock() { return $this->stock; }
+    public function setStock($stock) { $this->stock = $stock; }
 
-    public function setDescription($description)
-    {
-        $this->description = $description;
-    }
+    public function getCategorieId() { return $this->categorie_id; }
+    public function setCategorieId($categorie_id) { $this->categorie_id = $categorie_id; }
 
-    public function getPrix()
-    {
-        return $this->prix;
-    }
-
-    public function setPrix($prix)
-    {
-        $this->prix = $prix;
-    }
-
-    public function getStock()
-    {
-        return $this->stock;
-    }
-
-    public function setStock($stock)
-    {
-        $this->stock = $stock;
-    }
-
-    public function getImageUrl()
-    {
-        return $this->image_url;
-    }
-
-    public function setImageUrl($image_url)
-    {
-        $this->image_url = $image_url;
-    }
-
-    public function getCategorieId()
-    {
-        return $this->categorie_id;
-    }
-
-    public function setCategorieId($categorie_id)
-    {
-        $this->categorie_id = $categorie_id;
-    }
+    public function getCategorieNom() { return $this->categorie_nom; }
+    public function setCategorieNom($categorie_nom) { $this->categorie_nom = $categorie_nom; }
 
     // =====================
     // Méthodes CRUD
     // =====================
 
     /**
-     * Récupère tous les produits avec leurs catégories
-     * @return array
+     * Récupère tous les produits avec leur catégorie
      */
-    public static function getAll()
+    public static function findAll()
     {
         $pdo = Database::getPDO();
-        $stmt = $pdo->query("
-            SELECT p.*, c.nom as categorie_nom 
-            FROM produit p 
-            LEFT JOIN categorie c ON p.categorie_id = c.id 
-            ORDER BY p.id DESC
-        ");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $sql = 'SELECT p.*, c.nom as categorie_nom 
+                FROM produit p
+                LEFT JOIN categorie c ON p.categorie_id = c.id
+                ORDER BY p.id DESC';
+        $statement = $pdo->query($sql);
+        return $statement->fetchAll(PDO::FETCH_CLASS, self::class);
     }
 
     /**
-     * Récupère un produit par son ID avec sa catégorie
-     * @param int $id
-     * @return array|null
+     * Récupère les produits par catégorie
      */
-    public static function findById($id)
+    public static function findByCategorie($categorie_id)
     {
         $pdo = Database::getPDO();
-        $stmt = $pdo->prepare("
-            SELECT p.*, c.nom as categorie_nom 
-            FROM produit p 
-            LEFT JOIN categorie c ON p.categorie_id = c.id 
-            WHERE p.id = ?
-        ");
-        $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $sql = 'SELECT p.*, c.nom as categorie_nom 
+                FROM produit p
+                LEFT JOIN categorie c ON p.categorie_id = c.id
+                WHERE p.categorie_id = :categorie_id
+                ORDER BY p.id DESC';
+        $statement = $pdo->prepare($sql);
+        $statement->execute(['categorie_id' => $categorie_id]);
+        return $statement->fetchAll(PDO::FETCH_CLASS, self::class);
     }
 
     /**
-     * Crée un nouveau produit
-     * @return bool
+     * Trouve un produit par ID
      */
-    public function save()
+    public static function find($id)
     {
         $pdo = Database::getPDO();
-        $stmt = $pdo->prepare("INSERT INTO produit (nom, description, prix, stock, image_url, categorie_id) VALUES (?, ?, ?, ?, ?, ?)");
-        return $stmt->execute([
-            $this->nom,
-            $this->description,
-            $this->prix,
-            $this->stock,
-            $this->image_url,
-            $this->categorie_id
+        $sql = 'SELECT p.*, c.nom as categorie_nom 
+                FROM produit p
+                LEFT JOIN categorie c ON p.categorie_id = c.id
+                WHERE p.id = :id';
+        $statement = $pdo->prepare($sql);
+        $statement->execute(['id' => $id]);
+        $statement->setFetchMode(PDO::FETCH_CLASS, self::class);
+        return $statement->fetch();
+    }
+
+    /**
+     * Met à jour le stock d'un produit
+     */
+    public function updateStock($quantity)
+    {
+        $pdo = Database::getPDO();
+        $sql = 'UPDATE produit SET stock = stock - :quantity WHERE id = :id';
+        $statement = $pdo->prepare($sql);
+        return $statement->execute([
+            'id' => $this->id,
+            'quantity' => $quantity
         ]);
-    }
-
-    /**
-     * Met à jour les informations d'un produit existant
-     * @return bool
-     */
-    public function update()
-    {
-        $pdo = Database::getPDO();
-        $stmt = $pdo->prepare("UPDATE produit SET nom = ?, description = ?, prix = ?, stock = ?, image_url = ?, categorie_id = ? WHERE id = ?");
-        return $stmt->execute([
-            $this->nom,
-            $this->description,
-            $this->prix,
-            $this->stock,
-            $this->image_url,
-            $this->categorie_id,
-            $this->id
-        ]);
-    }
-
-    /**
-     * Supprime un produit
-     * @return bool
-     */
-    public function delete()
-    {
-        $pdo = Database::getPDO();
-        $stmt = $pdo->prepare("DELETE FROM produit WHERE id = ?");
-        return $stmt->execute([$this->id]);
     }
 }
-
