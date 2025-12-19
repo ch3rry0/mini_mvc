@@ -2,34 +2,47 @@
 
 declare(strict_types=1);
 
-require dirname(path: __DIR__) . '/vendor/autoload.php';
+require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Mini\Core\Router;
+use Mini\Controllers\ProductController;
+use Mini\Controllers\AuthController;
+use Mini\Controllers\CartController;
+use Mini\Controllers\OrderController;
 
-// Table des routes minimaliste
+// Démarrer la session
+session_start();
+
+// Table des routes de l'application e-commerce
 $routes = [
-    ['GET', '/', [Mini\Controllers\HomeController::class, 'index']],
-    ['GET', '/users', [Mini\Controllers\HomeController::class, 'users']],
-    ['POST', '/users', [Mini\Controllers\HomeController::class, 'createUser']],
-    ['GET', '/users/create', [Mini\Controllers\HomeController::class, 'showCreateUserForm']],
-    ['GET', '/products', [Mini\Controllers\ProductController::class, 'listProducts']],
-    ['GET', '/products/show', [Mini\Controllers\ProductController::class, 'show']],
-    ['GET', '/products/create', [Mini\Controllers\ProductController::class, 'showCreateProductForm']],
-    ['POST', '/products', [Mini\Controllers\ProductController::class, 'createProduct']],
-    // Routes pour le panier
-    ['GET', '/cart', [Mini\Controllers\CartController::class, 'show']],
-    ['POST', '/cart/add', [Mini\Controllers\CartController::class, 'add']],
-    ['POST', '/cart/add-from-form', [Mini\Controllers\CartController::class, 'addFromForm']],
-    ['POST', '/cart/update', [Mini\Controllers\CartController::class, 'update']],
-    ['POST', '/cart/remove', [Mini\Controllers\CartController::class, 'remove']],
-    ['POST', '/cart/clear', [Mini\Controllers\CartController::class, 'clear']],
-    // Routes pour les commandes
-    ['GET', '/orders', [Mini\Controllers\OrderController::class, 'listByUser']],
-    ['GET', '/orders/validated', [Mini\Controllers\OrderController::class, 'listValidated']],
-    ['GET', '/orders/show', [Mini\Controllers\OrderController::class, 'show']],
-    ['POST', '/orders/create', [Mini\Controllers\OrderController::class, 'create']],
-    ['POST', '/orders/update-status', [Mini\Controllers\OrderController::class, 'updateStatus']],
+    // Routes produits
+    ['GET', '/', [ProductController::class, 'index']],
+    ['GET', '/product', [ProductController::class, 'show']],
+    
+    // Routes authentification
+    ['GET', '/login', [AuthController::class, 'login']],
+    ['POST', '/login', [AuthController::class, 'loginPost']],
+    ['GET', '/register', [AuthController::class, 'register']],
+    ['POST', '/register', [AuthController::class, 'registerPost']],
+    ['GET', '/logout', [AuthController::class, 'logout']],
+    
+    // Routes panier
+    ['GET', '/cart', [CartController::class, 'index']],
+    ['POST', '/cart/add', [CartController::class, 'add']],
+    ['POST', '/cart/update', [CartController::class, 'update']],
+    ['GET', '/cart/remove', [CartController::class, 'remove']],
+    ['GET', '/cart/clear', [CartController::class, 'clear']],
+    
+    // Routes commandes
+    ['GET', '/order/checkout', [OrderController::class, 'checkout']],
+    ['POST', '/order/process', [OrderController::class, 'process']],
+    ['GET', '/order/confirmation', [OrderController::class, 'confirmation']],
+    ['GET', '/order/history', [OrderController::class, 'history']],
+    ['GET', '/order/detail', [OrderController::class, 'detail']],
 ];
+
 // Bootstrap du router
 $router = new Router($routes);
 $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
+
+
