@@ -1,168 +1,217 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Mini\Controllers;
 
 use Mini\Core\Controller;
-use Mini\Models\Order;
-use Mini\Models\Cart;
+use Mini\Models\Commande;
+use Mini\Models\OrderItem;
+use Mini\Models\Product;
 
-final class OrderController extends Controller
+/**
+ * OrderController - Gère les commandes
+ */
+class OrderController extends Controller
 {
     /**
-     * Affiche toutes les commandes d'un utilisateur
+     * Vérifie que l'utilisateur est connecté
      */
-    public function listByUser(): void
+    private function checkAuth()
     {
-        $user_id = $_GET['user_id'] ?? 1; // Par défaut user_id = 1 pour la démo
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         
-        $orders = Order::getByUserId($user_id);
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+    }
+
+    /**
+     * Page de passage de commande
+     */
+    public function checkout()
+    {
+        $this->checkAuth();
         
-        $this->render('order/list', params: [
-            'title' => 'Mes commandes',
-            'orders' => $orders,
-            'user_id' => $user_id
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // Vérifier que le panier n'est pas vide
+        if (empty($_SESSION['cart'])) {
+            header('Location: /cart');
+            exit;
+        }
+
+        // Calculer le total
+        $total = 0;
+        $cartItems = [];
+        
+        foreach ($_SESSION['cart'] as $product_id => $quantity) {
+            $product = Product::find($product_id);
+            if ($product) {
+                $subtotal = $product->getPrix() * $quantity;
+                $cartItems[] = [
+                    'product' => $product,
+                    'quantity' => $quantity,
+                    'subtotal' => $subtotal
+                ];
+                $total += $subtotal;
+            }
+        }
+
+        $this->render('order/checkout', [
+            'cartItems' => $cartItems,
+            'total' => $total
         ]);
     }
 
     /**
-     * Affiche toutes les commandes validées
+     * Valide et crée la commande
      */
-    public function listValidated(): void
+    public function process()
     {
-        $orders = Order::getValidatedOrders();
+        $this->checkAuth();
         
-        $this->render('order/validated', params: [
-            'title' => 'Commandes validées',
-            'orders' => $orders
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // Vérifier que le panier n'est pas vide
+        if (empty($_SESSION['cart'])) {
+            header('Location: /cart');
+            exit;
+        }
+
+        // Calculer le total et vérifier les stocks
+        $total = 0;
+        $errors = [];
+        
+        foreach ($_SESSION['cart'] as $product_id => $quantity) {
+            $product = Product::find($product_id);
+            if (!$product) {
+                $errors[] = "Produit #{$product_id} introuvable";
+                continue;
+            }
+            
+            if ($product->getStock() < $quantity) {
+                $errors[] = "Stock insuffisant pour {$product->getNom()}";
+            }
+            
+            $total += $product->getPrix() * $quantity;
+        }
+
+        if (!empty($errors)) {
+            $this->render('order/checkout', ['errors' => $errors]);
+            return;
+        }
+
+        // Créer la commande
+        $commande = new Commande();
+        $commande->setDate(date('Y-m-d H:i:s'));
+        $commande->setStatut('en attente');
+        $commande->setTotal($total);
+        $commande->setUtilisateurId($_SESSION['user_id']);
+        $commande_id = $commande->insert();
+
+        // Créer les items de commande et mettre à jour les stocks
+        foreach ($_SESSION['cart'] as $product_id => $quantity) {
+            $product = Product::find($product_id);
+            
+            // Créer l'item
+            $orderItem = new OrderItem();
+            $orderItem->setQuantite($quantity);
+            $orderItem->setPrixUnitaire($product->getPrix());
+            $orderItem->setCommandeId($commande_id);
+            $orderItem->setProduitId($product_id);
+            $orderItem->insert();
+            
+            // Mettre à jour le stock
+            $product->updateStock($quantity);
+        }
+
+        // Vider le panier
+        $_SESSION['cart'] = [];
+
+        // Rediriger vers la page de confirmation
+        header("Location: /order/confirmation?id={$commande_id}");
+        exit;
+    }
+
+    /**
+     * Page de confirmation de commande
+     */
+    public function confirmation()
+    {
+        $this->checkAuth();
+        
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $commande = Commande::find($id);
+
+        if (!$commande) {
+            header('Location: /');
+            exit;
+        }
+
+        // Récupérer les items
+        $items = $commande->getItems();
+
+        $this->render('order/confirmation', [
+            'commande' => $commande,
+            'items' => $items
         ]);
     }
 
     /**
-     * Affiche les détails d'une commande
+     * Historique des commandes (espace client)
      */
-    public function show(): void
+    public function history()
     {
-        $id = $_GET['id'] ?? null;
+        $this->checkAuth();
         
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Le paramètre id est requis.'], JSON_PRETTY_PRINT);
-            return;
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
         }
-        
-        $order = Order::findByIdWithProducts($id);
-        
-        $message = null;
-        $messageType = null;
-        
-        if (isset($_GET['success']) && $_GET['success'] === 'created') {
-            $message = 'Commande créée avec succès !';
-            $messageType = 'success';
-        }
-        
-        if (!$order) {
-            $this->render('order/not-found', params: [
-                'title' => 'Commande introuvable'
-            ]);
-            return;
-        }
-        
-        $this->render('order/show', params: [
-            'title' => 'Détails de la commande #' . $id,
-            'order' => $order,
-            'message' => $message,
-            'messageType' => $messageType
+
+        $commandes = Commande::findByUtilisateur($_SESSION['user_id']);
+
+        $this->render('order/history', [
+            'commandes' => $commandes
         ]);
     }
 
     /**
-     * Crée une commande à partir du panier
+     * Détail d'une commande
      */
-    public function create(): void
+    public function detail()
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /cart?user_id=' . ($_GET['user_id'] ?? 1));
-            return;
-        }
+        $this->checkAuth();
         
-        $input = json_decode(file_get_contents('php://input'), true);
-        if ($input === null) {
-            $input = $_POST;
-        }
-        
-        $user_id = $input['user_id'] ?? $_GET['user_id'] ?? 1;
-        
-        // Vérifie que le panier n'est pas vide
-        $cartItems = Cart::getByUserId($user_id);
-        if (empty($cartItems)) {
-            header('Location: /cart?user_id=' . $user_id . '&error=empty_cart');
-            return;
-        }
-        
-        // Crée la commande
-        $orderId = Order::createFromCart($user_id);
-        
-        if ($orderId) {
-            header('Location: /orders/show?id=' . $orderId . '&success=created');
-        } else {
-            header('Location: /cart?user_id=' . $user_id . '&error=create_failed');
-        }
-    }
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $commande = Commande::find($id);
 
-    /**
-     * Met à jour le statut d'une commande
-     */
-    public function updateStatus(): void
-    {
-        header('Content-Type: application/json; charset=utf-8');
-        
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'PUT') {
-            http_response_code(405);
-            echo json_encode(['error' => 'Méthode non autorisée.'], JSON_PRETTY_PRINT);
-            return;
+        if (!$commande) {
+            header('Location: /order/history');
+            exit;
+        }
+
+        // Vérifier que la commande appartient bien à l'utilisateur connecté
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
         }
         
-        $input = json_decode(file_get_contents('php://input'), true);
-        if ($input === null) {
-            $input = $_POST;
+        if ($commande->getUtilisateurId() != $_SESSION['user_id']) {
+            header('Location: /order/history');
+            exit;
         }
-        
-        if (empty($input['order_id']) || empty($input['statut'])) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Les champs "order_id" et "statut" sont requis.'], JSON_PRETTY_PRINT);
-            return;
-        }
-        
-        $validStatuses = ['en_attente', 'validee', 'annulee'];
-        if (!in_array($input['statut'], $validStatuses)) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Statut invalide. Valeurs acceptées: ' . implode(', ', $validStatuses)], JSON_PRETTY_PRINT);
-            return;
-        }
-        
-        $order = new Order();
-        $order->setId($input['order_id']);
-        $order->setStatut($input['statut']);
-        
-        // Récupère le total existant
-        $pdo = \Mini\Core\Database::getPDO();
-        $stmt = $pdo->prepare("SELECT total FROM commande WHERE id = ?");
-        $stmt->execute([$input['order_id']]);
-        $existing = $stmt->fetch(\PDO::FETCH_ASSOC);
-        $order->setTotal($existing['total'] ?? 0);
-        
-        if ($order->update()) {
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Statut de la commande mis à jour avec succès.'
-            ], JSON_PRETTY_PRINT);
-        } else {
-            http_response_code(500);
-            echo json_encode(['error' => 'Erreur lors de la mise à jour.'], JSON_PRETTY_PRINT);
-        }
+
+        // Récupérer les items
+        $items = $commande->getItems();
+
+        $this->render('order/detail', [
+            'commande' => $commande,
+            'items' => $items
+        ]);
     }
 }
-
