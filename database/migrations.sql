@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS commande (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_commande_user 
         FOREIGN KEY (user_id) 
-        REFERENCES user(id) 
+        REFERENCES utilisateur(id) 
         ON DELETE CASCADE 
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
