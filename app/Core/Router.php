@@ -25,6 +25,15 @@ final class Router
     {
         // Extrait uniquement le chemin de l'URI
         $path = parse_url($uri, PHP_URL_PATH) ?? '/';
+        
+        // Nettoyer le path en enlevant index.php, ecommerce.php et le préfixe du dossier
+        $path = str_replace(['/index.php', '/ecommerce.php'], '', $path);
+        $path = preg_replace('#^/mini_mvc/public#', '', $path);
+        
+        // Si le path est vide, le mettre à /
+        if (empty($path) || $path === '') {
+            $path = '/';
+        }
 
         // Parcourt chaque route enregistrée
         foreach ($this->routes as [$routeMethod, $routePath, $handler]) {
