@@ -57,7 +57,19 @@ class Commande
         $this->id = $pdo->lastInsertId();
         return $this->id;
     }
-
+    // Récupérer toutes les commandes (admin)
+    public static function findAll(): array
+    {
+        $pdo = Database::getPDO();
+        $sql = 'SELECT c.*, u.nom as utilisateur_nom, u.email as utilisateur_email 
+                FROM commande c 
+                JOIN utilisateur u ON c.utilisateur_id = u.id 
+                ORDER BY c.date DESC';
+        $statement = $pdo->prepare($sql);
+        $statement->execute();
+        $statement->setFetchMode(PDO::FETCH_CLASS, self::class);
+        return $statement->fetchAll();
+    }
     /**
      * Récupère les commandes d'un utilisateur
      */
@@ -98,5 +110,12 @@ class Commande
         $statement = $pdo->prepare($sql);
         $statement->execute(['commande_id' => $this->id]);
         return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+    // Mettre à jour le statut d'une commande
+    public function updateStatut(string $statut): void {
+        $pdo = Database::getPDO();
+        $stmt = $pdo->prepare("UPDATE commande SET statut = :statut WHERE id = :id");
+        $stmt->execute([':statut' => $statut, ':id' => $this->id]);
+        $this->statut = $statut;
     }
 }

@@ -9,25 +9,30 @@
 <body>
     <header>
         <nav class="navbar">
-            <div class="container">
+            <div class="container navbar-container">
+                <div class="nav-left"></div>
                 <div class="nav-brand">
-                    <a href="<?= $baseUrl ?>/">🛒 E-Commerce</a>
+                    <a href="<?= $baseUrl ?>/">E-Commerce</a>
                 </div>
                 <ul class="nav-menu">
                     <li><a href="<?= $baseUrl ?>/">Accueil</a></li>
-                    <li><a href="<?= $baseUrl ?>/cart">Panier <?php 
-                        session_status() === PHP_SESSION_NONE && session_start();
-                        $cartCount = isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
-                        echo $cartCount > 0 ? "($cartCount)" : '';
-                    ?></a></li>
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <li><a href="<?= $baseUrl ?>/order/history">Mes commandes</a></li>
-                        <li><span>Bonjour, <?= htmlspecialchars($_SESSION['user_nom']) ?></span></li>
+                            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
+                                <li><a href="<?= $baseUrl ?>/admin/dashboard">📊 Admin</a></li>
+                            <?php endif; ?>
+                        <li><a href="<?= $baseUrl ?>/order/history">Commandes</a></li>
                         <li><a href="<?= $baseUrl ?>/logout">Déconnexion</a></li>
                     <?php else: ?>
                         <li><a href="<?= $baseUrl ?>/login">Connexion</a></li>
                         <li><a href="<?= $baseUrl ?>/register">Inscription</a></li>
                     <?php endif; ?>
+                    <li>
+                        <a href="<?= $baseUrl ?>/cart" class="cart-icon">🛒 <?php 
+                            session_status() === PHP_SESSION_NONE && session_start();
+                            $cartCount = isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
+                            echo $cartCount > 0 ? "<span class='cart-count'>$cartCount</span>" : '';
+                        ?></a>
+                    </li>
                 </ul>
             </div>
         </nav>
