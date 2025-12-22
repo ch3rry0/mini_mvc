@@ -2,7 +2,7 @@
 
 <!-- Filtre par catégorie -->
 <div class="filter-section">
-    <form method="GET" action="/mini_mvc/public/">
+    <form method="GET" action="<?= $baseUrl ?>/">
         <label for="categorie">Filtrer par catégorie :</label>
         <select name="categorie" id="categorie" onchange="this.form.submit()">
             <option value="">Toutes les catégories</option>
@@ -38,9 +38,9 @@
                         <?php endif; ?>
                     </p>
                     <div class="product-actions">
-                        <a href="/mini_mvc/public/product?id=<?= $product->getId() ?>" class="btn btn-secondary">Voir détails</a>
+                        <a href="<?= $baseUrl ?>/product?id=<?= $product->getId() ?>" class="btn btn-secondary">Voir détails</a>
                         <?php if ($product->getStock() > 0): ?>
-                            <form method="POST" action="/mini_mvc/public/cart/add" style="display:inline;">
+                            <form method="POST" action="<?= $baseUrl ?>/cart/add" style="display:inline;">
                                 <input type="hidden" name="product_id" value="<?= $product->getId() ?>">
                                 <input type="hidden" name="quantity" value="1">
                                 <button type="submit" class="btn btn-primary">Ajouter au panier</button>

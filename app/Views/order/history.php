@@ -3,7 +3,7 @@
 <?php if (empty($commandes)): ?>
     <div class="empty-state">
         <p>Vous n'avez pas encore passé de commande.</p>
-        <a href="/mini_mvc/public/" class="btn btn-primary">Découvrir nos produits</a>
+        <a href="<?= $baseUrl ?>/" class="btn btn-primary">Découvrir nos produits</a>
     </div>
 <?php else: ?>
     <div class="orders-list">
@@ -29,7 +29,7 @@
                         </td>
                         <td><strong><?= number_format($commande->getTotal(), 2) ?> €</strong></td>
                         <td>
-                            <a href="/mini_mvc/public/order/detail?id=<?= $commande->getId() ?>" class="btn btn-secondary btn-small">
+                            <a href="<?= $baseUrl ?>/order/detail?id=<?= $commande->getId() ?>" class="btn btn-secondary btn-small">
                                 Voir détails
                             </a>
                         </td>

@@ -49,7 +49,7 @@ class ProductController extends Controller
         $product = Product::find($id);
         
         if (!$product) {
-            header('Location: /');
+            header('Location: ' . BASE_URL . '/');
             exit;
         }
         

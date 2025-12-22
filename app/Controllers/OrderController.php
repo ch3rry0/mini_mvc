@@ -22,7 +22,7 @@ class OrderController extends Controller
         }
         
         if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
+            header('Location: ' . BASE_URL . '/login');
             exit;
         }
     }
@@ -40,7 +40,7 @@ class OrderController extends Controller
 
         // Vérifier que le panier n'est pas vide
         if (empty($_SESSION['cart'])) {
-            header('Location: /cart');
+            header('Location: ' . BASE_URL . '/cart');
             exit;
         }
 
@@ -80,7 +80,7 @@ class OrderController extends Controller
 
         // Vérifier que le panier n'est pas vide
         if (empty($_SESSION['cart'])) {
-            header('Location: /cart');
+            header('Location: ' . BASE_URL . '/cart');
             exit;
         }
 
@@ -135,7 +135,7 @@ class OrderController extends Controller
         $_SESSION['cart'] = [];
 
         // Rediriger vers la page de confirmation
-        header("Location: /order/confirmation?id={$commande_id}");
+        header("Location: " . BASE_URL . "/order/confirmation?id={$commande_id}");
         exit;
     }
 
@@ -150,7 +150,7 @@ class OrderController extends Controller
         $commande = Commande::find($id);
 
         if (!$commande) {
-            header('Location: /');
+            header('Location: ' . BASE_URL . '/');
             exit;
         }
 
@@ -192,7 +192,7 @@ class OrderController extends Controller
         $commande = Commande::find($id);
 
         if (!$commande) {
-            header('Location: /order/history');
+            header('Location: ' . BASE_URL . '/order/history');
             exit;
         }
 
@@ -202,7 +202,7 @@ class OrderController extends Controller
         }
         
         if ($commande->getUtilisateurId() != $_SESSION['user_id']) {
-            header('Location: /order/history');
+            header('Location: ' . BASE_URL . '/order/history');
             exit;
         }
 

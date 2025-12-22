@@ -25,7 +25,7 @@
             </div>
 
             <?php if ($product->getStock() > 0): ?>
-                <form method="POST" action="/mini_mvc/public/cart/add" class="add-to-cart-form">
+                <form method="POST" action="<?= $baseUrl ?>/cart/add" class="add-to-cart-form">
                     <input type="hidden" name="product_id" value="<?= $product->getId() ?>">
                     <div class="quantity-selector">
                         <label for="quantity">Quantité :</label>
@@ -35,7 +35,7 @@
                 </form>
             <?php endif; ?>
 
-            <a href="/mini_mvc/public/" class="btn btn-secondary">← Retour aux produits</a>
+            <a href="<?= $baseUrl ?>/" class="btn btn-secondary">← Retour aux produits</a>
         </div>
     </div>
 </div>

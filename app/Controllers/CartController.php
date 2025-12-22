@@ -82,7 +82,7 @@ class CartController extends Controller
             }
         }
 
-        header('Location: /cart');
+        header('Location: ' . BASE_URL . '/cart');
         exit;
     }
 
@@ -109,7 +109,7 @@ class CartController extends Controller
             }
         }
 
-        header('Location: /cart');
+        header('Location: ' . BASE_URL . '/cart');
         exit;
     }
 
@@ -126,7 +126,7 @@ class CartController extends Controller
             unset($_SESSION['cart'][$product_id]);
         }
 
-        header('Location: /cart');
+        header('Location: ' . BASE_URL . '/cart');
         exit;
     }
 
@@ -138,7 +138,7 @@ class CartController extends Controller
         $this->initSession();
         $_SESSION['cart'] = [];
         
-        header('Location: /cart');
+        header('Location: ' . BASE_URL . '/cart');
         exit;
     }
 }

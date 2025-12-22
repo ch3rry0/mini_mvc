@@ -23,8 +23,8 @@
         </div>
 
         <div class="confirmation-actions">
-            <a href="/mini_mvc/public/" class="btn btn-primary">Retour à l'accueil</a>
-            <a href="/mini_mvc/public/order/history" class="btn btn-secondary">Mes commandes</a>
+            <a href="<?= $baseUrl ?>/" class="btn btn-primary">Retour à l'accueil</a>
+            <a href="<?= $baseUrl ?>/order/history" class="btn btn-secondary">Mes commandes</a>
         </div>
     </div>
 </div>

@@ -43,7 +43,7 @@ class AuthController extends Controller
                 $_SESSION['user_nom'] = $user->getNom();
                 $_SESSION['user_role'] = $user->getRole();
                 
-                header('Location: /');
+                header('Location: ' . BASE_URL . '/');
                 exit;
             } else {
                 $errors[] = 'Email ou mot de passe incorrect';
@@ -108,7 +108,7 @@ class AuthController extends Controller
             $_SESSION['user_nom'] = $user->getNom();
             $_SESSION['user_role'] = $user->getRole();
 
-            header('Location: /');
+            header('Location: ' . BASE_URL . '/');
             exit;
         }
 
@@ -128,7 +128,7 @@ class AuthController extends Controller
     {
         session_start();
         session_destroy();
-        header('Location: /');
+        header('Location: ' . BASE_URL . '/');
         exit;
     }
 }

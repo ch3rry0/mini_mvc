@@ -41,10 +41,10 @@
     </div>
 
     <div class="checkout-actions">
-        <form method="POST" action="/mini_mvc/public/order/process">
+        <form method="POST" action="<?= $baseUrl ?>/order/process">
             <p>En confirmant cette commande, vous acceptez nos conditions de vente.</p>
             <button type="submit" class="btn btn-primary btn-large">Confirmer la commande</button>
         </form>
-        <a href="/mini_mvc/public/cart" class="btn btn-secondary">Retour au panier</a>
+        <a href="<?= $baseUrl ?>/cart" class="btn btn-secondary">Retour au panier</a>
     </div>
 </div>

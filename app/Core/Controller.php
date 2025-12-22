@@ -9,6 +9,9 @@ class Controller
     // Méthode utilitaire pour rendre une vue avec des paramètres
     protected function render(string $view, array $params = []): void
     {
+        // Rendre BASE_URL disponible dans les vues
+        $baseUrl = defined('BASE_URL') ? BASE_URL : '';
+        
         // Extrait les paramètres en variables locales, sans écraser les existantes
         extract(array: $params);
         // Construit le chemin du fichier de vue

@@ -43,6 +43,6 @@
     </div>
 
     <div class="order-actions">
-        <a href="/mini_mvc/public/order/history" class="btn btn-secondary">← Retour à mes commandes</a>
+        <a href="<?= $baseUrl ?>/order/history" class="btn btn-secondary">← Retour à mes commandes</a>
     </div>
 </div>

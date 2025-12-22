@@ -10,6 +10,9 @@ use Mini\Controllers\AuthController;
 use Mini\Controllers\CartController;
 use Mini\Controllers\OrderController;
 
+// Définir l'URL de base de l'application
+define('BASE_URL', '/mini_mvc/public');
+
 // Démarrer la session
 session_start();
 

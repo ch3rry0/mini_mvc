@@ -10,7 +10,7 @@
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="/mini_mvc/public/register">
+        <form method="POST" action="<?= $baseUrl ?>/register">
             <div class="form-group">
                 <label for="nom">Nom complet *</label>
                 <input type="text" id="nom" name="nom" value="<?= htmlspecialchars($nom ?? '') ?>" required>
@@ -40,7 +40,7 @@
         </form>
 
         <p class="auth-link">
-            Déjà un compte ? <a href="/mini_mvc/public/login">Se connecter</a>
+            Déjà un compte ? <a href="<?= $baseUrl ?>/login">Se connecter</a>
         </p>
     </div>
 </div>
