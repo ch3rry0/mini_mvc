@@ -9,6 +9,7 @@ use Mini\Controllers\ProductController;
 use Mini\Controllers\AuthController;
 use Mini\Controllers\CartController;
 use Mini\Controllers\OrderController;
+use Mini\Controllers\AdminController;
 
 // Définir l'URL de base de l'application
 define('BASE_URL', '/mini_mvc/public');
@@ -42,6 +43,9 @@ $routes = [
     ['GET', '/order/confirmation', [OrderController::class, 'confirmation']],
     ['GET', '/order/history', [OrderController::class, 'history']],
     ['GET', '/order/detail', [OrderController::class, 'detail']],
+    // Routes admin
+    ['GET', '/admin/dashboard', [AdminController::class, 'dashboard']],
+    ['POST', '/admin/update-status', [AdminController::class, 'updateStatus']]
 ];
 
 // Bootstrap du router
